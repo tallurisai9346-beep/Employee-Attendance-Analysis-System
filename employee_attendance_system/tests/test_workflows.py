@@ -78,6 +78,16 @@ def test_admin_and_employee_have_separate_login_pages(client):
     assert b'name="username"' not in employee_login.data
 
 
+def test_admin_dashboard_renders_department_chart_data(client):
+    assert login_admin(client).status_code == 302
+
+    response = client.get("/admin/")
+
+    assert response.status_code == 200
+    assert b'id="departmentChart"' in response.data
+    assert b'["Engineering", 1]' in response.data
+
+
 def test_employee_can_self_register_but_cannot_access_admin(client, app):
     signup_page = client.get("/employee/signup")
     assert signup_page.status_code == 200

@@ -34,9 +34,12 @@ def dashboard():
     present_month = sum(employee_summary(employee.id, month_start, today)["Present"] for employee in employees)
     eligible = max(team_eligible_workdays(employees, month_start, today), 1)
     attendance_percent = round(present_month / eligible * 100, 1)
-    department_rows = db.session.query(Department.department_name, func.count(Employee.id)).join(Employee).filter(
-        Employee.account_status == "active"
-    ).group_by(Department.id).all()
+    department_rows = [
+        (name, count)
+        for name, count in db.session.query(Department.department_name, func.count(Employee.id)).join(Employee).filter(
+            Employee.account_status == "active"
+        ).group_by(Department.id).all()
+    ]
     recent = Attendance.query.order_by(Attendance.attendance_date.desc(), Attendance.updated_at.desc()).limit(8).all()
     pending_leaves = LeaveRequest.query.filter_by(status="pending").count()
     months = pd.date_range(end=today.replace(day=1), periods=6, freq="MS")
