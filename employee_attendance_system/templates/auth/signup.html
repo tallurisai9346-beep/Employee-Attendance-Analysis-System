@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Create employee account{% endblock %}
+{% block public_content %}
+<main class="auth-layout auth-layout--employee">
+  <a class="auth-brand" href="{{ url_for('auth.landing') }}">
+    <span class="brand-mark"><i class="bi bi-calendar2-check"></i></span>
+    <span>EA<span class="brand-accent">AS</span><small>ATTENDANCE ANALYSIS</small></span>
+  </a>
+  <section class="auth-card auth-card--employee">
+    <span class="eyebrow">EMPLOYEE ACCESS</span>
+    <h1>Create an account</h1>
+    <p class="muted">Register your employee login. Admin access is provisioned separately.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    <form method="post" class="form-stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Full name<input name="full_name" value="{{ full_name }}" maxlength="100" autocomplete="name" required autofocus></label>
+      <label>Work email<input type="email" name="email" value="{{ email }}" maxlength="254" autocomplete="email" autocapitalize="none" required></label>
+      <label>Phone <span class="muted">(optional)</span><input name="phone" value="{{ phone }}" maxlength="30" autocomplete="tel"></label>
+      <label>Password <span class="muted">(at least 12 characters)</span><input type="password" name="password" minlength="12" autocomplete="new-password" required></label>
+      <label>Confirm password<input type="password" name="confirm_password" minlength="12" autocomplete="new-password" required></label>
+      <button class="btn btn-dark w-100" type="submit">Create employee account <i class="bi bi-arrow-right"></i></button>
+    </form>
+    <a class="back-link" href="{{ url_for('auth.employee_login') }}"><i class="bi bi-arrow-left"></i> Already registered? Sign in</a>
+  </section>
+  <p class="auth-footer">Employee accounts cannot access administrator tools</p>
+</main>
+{% endblock %}

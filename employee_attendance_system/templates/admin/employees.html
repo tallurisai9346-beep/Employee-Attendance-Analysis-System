@@ -1,6 +1,102 @@
-{% extends "base.html" %}{% block title %}Employee management{% endblock %}{% block breadcrumb %}Employees{% endblock %}
+{% extends "base.html" %}
+{% block title %}Employee management{% endblock %}
+{% block breadcrumb %}Employees{% endblock %}
 {% block content %}
-<div class="page-heading"><div><span class="eyebrow">PEOPLE OPERATIONS</span><h1>Employees</h1><p>Create employee accounts and keep employment details current.</p></div><button class="btn btn-dark" data-bs-toggle="collapse" data-bs-target="#addEmployee"><i class="bi bi-person-plus"></i> Add employee</button></div>
-<section class="panel collapse mb-4" id="addEmployee"><div class="panel-heading"><div><h2>New employee account</h2><p>Login uses the employee email or employee code.</p></div></div><form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Full name<input name="full_name" maxlength="100" required></label><label>Employee code<input name="employee_code" maxlength="30" required></label><label>Email<input type="email" name="email" required></label><label>Phone<input name="phone" maxlength="30"></label><label>Department<select name="department_id" required>{% for department in departments %}<option value="{{ department.id }}">{{ department.department_name }}</option>{% endfor %}</select></label><label>Designation<input name="designation"></label><label>Joining date<input type="date" name="joining_date" required></label><label>Temporary password<input type="password" name="password" minlength="8" autocomplete="new-password" required></label><div class="form-submit"><button class="btn btn-dark" type="submit">Create account</button></div></form></section>
-<section class="panel table-panel"><form class="filter-bar" method="get"><label class="search-box"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search name, email or employee code"></label><select name="department" aria-label="Department"><option value="">All departments</option>{% for department in departments %}<option value="{{ department.id }}" {% if department_id == department.id|string %}selected{% endif %}>{{ department.department_name }}</option>{% endfor %}</select><select name="status" aria-label="Account status"><option value="">All statuses</option><option value="active" {% if status == 'active' %}selected{% endif %}>Active</option><option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option></select><button class="btn btn-outline-dark btn-sm">Filter</button></form><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joined</th><th>Status</th><th>Manage</th></tr></thead><tbody>{% for employee in employees %}<tr><td><strong>{{ employee.full_name }}</strong><small class="table-secondary">{{ employee.employee_code }} · {{ employee.email }}</small></td><td>{{ employee.department.department_name }}</td><td>{{ employee.designation or '—' }}</td><td>{{ employee.joining_date.strftime('%d %b %Y') }}</td><td><span class="status-badge status-{{ employee.account_status }}">{{ employee.account_status }}</span></td><td><details class="row-actions"><summary aria-label="Manage {{ employee.full_name }}"><i class="bi bi-three-dots"></i></summary><div class="action-popover"><form method="post" action="{{ url_for('admin.edit_employee', employee_id=employee.id) }}" class="compact-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Name<input name="full_name" value="{{ employee.full_name }}" required></label><label>Email<input name="email" type="email" value="{{ employee.email }}" required></label><label>Phone<input name="phone" value="{{ employee.phone }}"></label><label>Designation<input name="designation" value="{{ employee.designation }}"></label><label>Department<select name="department_id">{% for department in departments %}<option value="{{ department.id }}" {% if department.id == employee.department_id %}selected{% endif %}>{{ department.department_name }}</option>{% endfor %}</select></label><label>Joining date<input name="joining_date" type="date" value="{{ employee.joining_date.isoformat() }}"></label><button class="btn btn-dark btn-sm">Save changes</button></form><form method="post" action="{{ url_for('admin.employee_status', employee_id=employee.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-dark btn-sm">{{ 'Deactivate' if employee.account_status == 'active' else 'Reactivate' }}</button></form><form method="post" action="{{ url_for('admin.reset_employee_password', employee_id=employee.id) }}" class="compact-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Reset password<input name="password" type="password" minlength="8" required></label><button class="btn btn-outline-dark btn-sm">Reset password</button></form></div></details></td></tr>{% else %}<tr><td colspan="6"><div class="empty-inline">No employee accounts match these filters.</div></td></tr>{% endfor %}</tbody></table></div></section>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">PEOPLE OPERATIONS</span>
+    <h1>Employees and login accounts</h1>
+    <p>View employee login IDs, edit account details, reset passwords, or remove accounts.</p>
+  </div>
+  <button class="btn btn-dark" data-bs-toggle="collapse" data-bs-target="#addEmployee">
+    <i class="bi bi-person-plus"></i> Add employee
+  </button>
+</div>
+<div class="alert alert-info" role="note">
+  Login IDs are the employee email and employee code. Passwords are securely hashed and cannot be viewed;
+  use Reset password to set a new password. Employee accounts do not have administrator access.
+</div>
+
+<section class="panel collapse mb-4" id="addEmployee">
+  <div class="panel-heading">
+    <div><h2>New employee account</h2><p>Login uses the employee email or employee code.</p></div>
+  </div>
+  <form method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Full name<input name="full_name" maxlength="100" required></label>
+    <label>Employee code<input name="employee_code" maxlength="30" required></label>
+    <label>Email<input type="email" name="email" maxlength="254" required></label>
+    <label>Phone<input name="phone" maxlength="30"></label>
+    <label>Department<select name="department_id" required>{% for department in departments %}<option value="{{ department.id }}">{{ department.department_name }}</option>{% endfor %}</select></label>
+    <label>Designation<input name="designation" maxlength="100"></label>
+    <label>Joining date<input type="date" name="joining_date" required></label>
+    <label>Initial password<input type="password" name="password" minlength="12" autocomplete="new-password" required></label>
+    <div class="form-submit"><button class="btn btn-dark" type="submit">Create account</button></div>
+  </form>
+</section>
+
+<section class="panel table-panel">
+  <form class="filter-bar" method="get">
+    <label class="search-box"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search name, email or employee code"></label>
+    <select name="department" aria-label="Department">
+      <option value="">All departments</option>
+      {% for department in departments %}<option value="{{ department.id }}" {% if department_id == department.id|string %}selected{% endif %}>{{ department.department_name }}</option>{% endfor %}
+    </select>
+    <select name="status" aria-label="Account status">
+      <option value="">All statuses</option>
+      <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+    <button class="btn btn-outline-dark btn-sm">Filter</button>
+  </form>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Employee / login IDs</th><th>Department</th><th>Designation</th><th>Joined</th><th>Status</th><th>Manage account</th></tr></thead>
+      <tbody>
+      {% for employee in employees %}
+        <tr>
+          <td><strong>{{ employee.full_name }}</strong><small class="table-secondary">Email: {{ employee.email }} · Employee ID: {{ employee.employee_code }}</small></td>
+          <td>{{ employee.department.department_name }}</td>
+          <td>{{ employee.designation or '—' }}</td>
+          <td>{{ employee.joining_date.strftime('%d %b %Y') }}</td>
+          <td><span class="status-badge status-{{ employee.account_status }}">{{ employee.account_status }}</span></td>
+          <td>
+            <details class="row-actions">
+              <summary aria-label="Manage {{ employee.full_name }}"><i class="bi bi-three-dots"></i></summary>
+              <div class="action-popover">
+                <form method="post" action="{{ url_for('admin.edit_employee', employee_id=employee.id) }}" class="compact-form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <label>Name<input name="full_name" value="{{ employee.full_name }}" maxlength="100" required></label>
+                  <label>Email / login ID<input name="email" type="email" value="{{ employee.email }}" maxlength="254" required></label>
+                  <label>Employee code / login ID<input name="employee_code" value="{{ employee.employee_code }}" maxlength="30" required></label>
+                  <label>Phone<input name="phone" value="{{ employee.phone }}" maxlength="30"></label>
+                  <label>Designation<input name="designation" value="{{ employee.designation }}" maxlength="100"></label>
+                  <label>Department<select name="department_id">{% for department in departments %}<option value="{{ department.id }}" {% if department.id == employee.department_id %}selected{% endif %}>{{ department.department_name }}</option>{% endfor %}</select></label>
+                  <label>Joining date<input name="joining_date" type="date" value="{{ employee.joining_date.isoformat() }}" required></label>
+                  <button class="btn btn-dark btn-sm">Save account changes</button>
+                </form>
+                <form method="post" action="{{ url_for('admin.employee_status', employee_id=employee.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-outline-dark btn-sm">{{ 'Deactivate account' if employee.account_status == 'active' else 'Reactivate account' }}</button>
+                </form>
+                <form method="post" action="{{ url_for('admin.reset_employee_password', employee_id=employee.id) }}" class="compact-form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <label>Set new password<input name="password" type="password" minlength="12" autocomplete="new-password" required></label>
+                  <button class="btn btn-outline-dark btn-sm">Reset password</button>
+                </form>
+                <form method="post" action="{{ url_for('admin.delete_employee', employee_id=employee.id) }}" onsubmit="return confirm('Permanently delete this employee account and all associated attendance, leave, correction, and notification records?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-outline-danger btn-sm">Delete account and records</button>
+                </form>
+              </div>
+            </details>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6"><div class="empty-inline">No employee accounts match these filters.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

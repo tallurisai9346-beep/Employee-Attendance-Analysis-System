@@ -1,0 +1,39 @@
+.auth-layout--admin {
+  background:
+    radial-gradient(circle at 85% 18%, #75652c 0, transparent 32%),
+    linear-gradient(140deg, #191a16, #343326);
+}
+
+.auth-layout--employee {
+  background:
+    radial-gradient(circle at 15% 82%, #75652c 0, transparent 30%),
+    linear-gradient(140deg, #20211c, #3b392b);
+}
+
+.auth-brand {
+  color: #fff;
+}
+
+.auth-brand small,
+.auth-footer {
+  color: #cbc8b9;
+}
+
+.auth-card--admin {
+  border-top: 4px solid #20211c;
+}
+
+.auth-card--employee {
+  border-top: 4px solid var(--gold);
+}
+
+.auth-card--employee .btn-dark {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #24241f;
+}
+
+.auth-card--employee .btn-dark:hover {
+  background: #c29d2e;
+  border-color: #c29d2e;
+}

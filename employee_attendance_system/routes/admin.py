@@ -7,6 +7,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import (ActivityLog, AdminAccount, Attendance, AttendanceCorrectionRequest, Department,
@@ -65,8 +66,8 @@ def employees():
             joining_date = date.fromisoformat(request.form.get("joining_date", ""))
             department_id = int(request.form.get("department_id", ""))
             department = db.session.get(Department, department_id)
-            if not all((full_name, email, code, department)) or len(password) < 8:
-                raise ValueError("Complete all required fields and use a password with at least 8 characters.")
+            if not all((full_name, email, code, department)) or len(password) < 12:
+                raise ValueError("Complete all required fields and use a password with at least 12 characters.")
             employee = Employee(
                 full_name=full_name, email=email, employee_code=code,
                 phone=request.form.get("phone", "").strip(), department_id=department_id,
@@ -103,22 +104,41 @@ def employees():
 @admin_required
 def edit_employee(employee_id):
     employee = db.get_or_404(Employee, employee_id)
-    employee.full_name = request.form.get("full_name", employee.full_name).strip()
-    employee.email = request.form.get("email", employee.email).strip().lower()
-    employee.phone = request.form.get("phone", "").strip()
-    employee.designation = request.form.get("designation", "").strip()
-    department_id = request.form.get("department_id", "")
-    if department_id.isdigit() and db.session.get(Department, int(department_id)):
-        employee.department_id = int(department_id)
     try:
-        employee.joining_date = date.fromisoformat(request.form.get("joining_date", employee.joining_date.isoformat()))
-        db.session.commit()
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        employee_code = request.form.get("employee_code", "").strip().upper()
+        phone = request.form.get("phone", "").strip()
+        designation = request.form.get("designation", "").strip()
+        department_id = int(request.form.get("department_id", ""))
+        joining_date = date.fromisoformat(request.form.get("joining_date", ""))
+        department = db.session.get(Department, department_id)
+        if not full_name or len(full_name) > 100 or not email or len(email) > 254:
+            raise ValueError("Enter a valid name and email address.")
+        if not employee_code or len(employee_code) > 30 or len(phone) > 30 or len(designation) > 100:
+            raise ValueError("Check the employee code, phone, and designation fields.")
+        if department is None:
+            raise ValueError("Choose a valid department.")
+        if Employee.query.filter(Employee.id != employee.id, Employee.email == email).first():
+            raise ValueError("That email address is already assigned to another account.")
+        if Employee.query.filter(Employee.id != employee.id, Employee.employee_code == employee_code).first():
+            raise ValueError("That employee code is already assigned to another account.")
+        employee.full_name = full_name
+        employee.email = email
+        employee.employee_code = employee_code
+        employee.phone = phone
+        employee.designation = designation
+        employee.department_id = department.id
+        employee.joining_date = joining_date
         log_activity("employee_updated", employee.employee_code)
         db.session.commit()
         flash("Employee profile updated.", "success")
-    except Exception:
+    except ValueError as exc:
         db.session.rollback()
-        flash("Unable to save. Check the email and date fields.", "danger")
+        flash(str(exc), "danger")
+    except IntegrityError:
+        db.session.rollback()
+        flash("That email or employee code is already assigned to another account.", "danger")
     return redirect(url_for("admin.employees"))
 
 
@@ -138,13 +158,25 @@ def employee_status(employee_id):
 def reset_employee_password(employee_id):
     employee = db.get_or_404(Employee, employee_id)
     password = request.form.get("password", "")
-    if len(password) < 8:
-        flash("Temporary password must contain at least 8 characters.", "danger")
+    if len(password) < 12:
+        flash("The new password must contain at least 12 characters.", "danger")
     else:
         employee.password_hash = generate_password_hash(password)
         log_activity("employee_password_reset", employee.employee_code)
         db.session.commit()
-        flash("Employee password reset.", "success")
+        flash("Employee password reset. The old password can no longer be viewed or used.", "success")
+    return redirect(url_for("admin.employees"))
+
+
+@admin_bp.post("/employees/<int:employee_id>/delete")
+@admin_required
+def delete_employee(employee_id):
+    employee = db.get_or_404(Employee, employee_id)
+    employee_label = f"{employee.employee_code} {employee.email}"
+    log_activity("employee_account_deleted", employee_label)
+    db.session.delete(employee)
+    db.session.commit()
+    flash("Employee account and its associated attendance, leave, correction, and notification records were deleted.", "success")
     return redirect(url_for("admin.employees"))
 
 

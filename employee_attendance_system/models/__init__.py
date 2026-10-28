@@ -48,6 +48,8 @@ class Employee(db.Model):
     department = db.relationship("Department", back_populates="employees")
     attendance = db.relationship("Attendance", back_populates="employee", cascade="all, delete-orphan")
     leaves = db.relationship("LeaveRequest", back_populates="employee", cascade="all, delete-orphan")
+    notifications = db.relationship("Notification", cascade="all, delete-orphan")
+    correction_requests = db.relationship("AttendanceCorrectionRequest", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("role = 'employee'", name="employee_role_only"),
