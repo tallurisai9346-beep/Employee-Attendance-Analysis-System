@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}Settings{% endblock %}{% block breadcrumb %}Settings{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">ACCOUNT PREFERENCES</span><h1>Settings</h1><p>Manage your administrator account and basic security.</p></div></div>
+<div class="panel settings-panel"><div class="form-section-title"><span class="section-number">01</span><div><h3>Change password</h3><p>Choose a password with at least 8 characters.</p></div></div><form method="post" class="settings-form"><label>Current password<input type="password" name="old_password" required></label><label>New password<input type="password" name="new_password" minlength="8" required></label><button class="btn primary">Update password →</button></form><div class="security-note"><strong>Security reminder</strong><p>This starter project uses a simple demo login to keep setup easy. Before public deployment, replace demo credentials, use password hashing, set a strong SECRET_KEY, enable HTTPS, and add CSRF protection.</p></div></div>
+{% endblock %}

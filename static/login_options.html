@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Choose sign in{% endblock %}
+{% block auth_content %}
+<main class="login-page">
+  <section class="login-visual" aria-label="AttendIQ overview">
+    <div class="login-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+    <div class="login-copy">
+      <span class="eyebrow">PEOPLE, MADE VISIBLE</span>
+      <h1>Attendance clarity.<br><em>Better decisions.</em></h1>
+      <p>Choose the portal that matches your account.</p>
+    </div>
+    <div class="login-foot">EMPLOYEE ATTENDANCE ANALYSIS SYSTEM</div>
+  </section>
+  <section class="login-panel" aria-labelledby="portal-heading">
+    <div class="login-card">
+      <div class="mobile-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+      <span class="eyebrow">WELCOME</span>
+      <h2 id="portal-heading">Choose your sign-in</h2>
+      <p class="muted">Select your account type to continue.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <nav class="portal-options" aria-label="Sign-in portals">
+        <a class="portal-option" href="{{ url_for('admin_login') }}"><span>Administrator</span><span aria-hidden="true">→</span></a>
+        <a class="portal-option" href="{{ url_for('employee_login') }}"><span>Employee</span><span aria-hidden="true">→</span></a>
+      </nav>
+      <p class="muted auth-switch">New user? <a href="{{ url_for('signup') }}">Create an account</a></p>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}My account{% endblock %}
+{% block breadcrumb %}My account{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">USER PORTAL</span>
+    <h1>Welcome, {{ session.get('display_name', session.get('user'))|title }}</h1>
+    <p>Your account is signed in and ready.</p>
+  </div>
+</div>
+<section class="panel user-account-panel" aria-labelledby="account-heading">
+  <div class="panel-heading">
+    <div><h3 id="account-heading">Account details</h3><p>Your profile information</p></div>
+    <span class="panel-badge">USER ACCOUNT</span>
+  </div>
+  <dl class="user-account-details">
+    <div><dt>Name</dt><dd>{{ session.get('display_name', session.get('user')) }}</dd></div>
+    <div><dt>Username</dt><dd>{{ session.get('user') }}</dd></div>
+    <div><dt>Account type</dt><dd>{{ session.get('role') }}</dd></div>
+  </dl>
+</section>
+{% endblock %}

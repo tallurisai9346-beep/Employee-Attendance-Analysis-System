@@ -1,0 +1,3 @@
+employee_code,name,department,email,phone,designation,join_date,status
+EMP006,Ananya Rao,Engineering,ananya@example.com,9876501234,Developer,2026-02-01,Active
+EMP007,Manoj Kumar,Operations,manoj@example.com,9876501235,Operations Associate,2026-03-10,Active

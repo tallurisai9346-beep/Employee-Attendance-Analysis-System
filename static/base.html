@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AttendIQ{% endblock %} · Employee Attendance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+{% if session.get('user') %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark">A</span><span>Attend<span class="brand-light">IQ</span><small>PEOPLE ANALYTICS</small></span></a>
+    <div class="side-label">WORKSPACE</div>
+    <nav>
+      <a class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><span>▦</span> Overview</a>
+      <a class="nav-link {% if request.endpoint in ['employees','employee_form'] %}active{% endif %}" href="{{ url_for('employees') }}"><span>♙</span> Employees</a>
+      <a class="nav-link {% if request.endpoint=='attendance' %}active{% endif %}" href="{{ url_for('attendance') }}"><span>◷</span> Mark attendance</a>
+      <a class="nav-link {% if request.endpoint in ['reports','export_report'] %}active{% endif %}" href="{{ url_for('reports') }}"><span>▤</span> Reports & analytics</a>
+      <a class="nav-link {% if request.endpoint=='import_csv' %}active{% endif %}" href="{{ url_for('import_csv') }}"><span>⇧</span> Import employees</a>
+    </nav>
+    <div class="side-bottom">
+      <div class="side-label">PREFERENCES</div>
+      <a class="nav-link {% if request.endpoint=='settings' %}active{% endif %}" href="{{ url_for('settings') }}"><span>⚙</span> Settings</a>
+      <div class="profile"><div class="avatar">{{ session.get('user','A')[0]|upper }}</div><div><strong>{{ session.get('user') }}</strong><small>Administrator</small></div><a class="logout" href="{{ url_for('logout') }}" title="Log out">↗</a></div>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><button class="mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="breadcrumb">Workspace <span>/</span> {% block breadcrumb %}Overview{% endblock %}</div><div class="top-actions"><span class="live-dot"></span><span class="top-status">System operational</span><div class="top-avatar">{{ session.get('user','A')[0]|upper }}</div></div></header>
+    <section class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-wrap">{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+      {% block content %}{% endblock %}
+      <footer>© 2026 AttendIQ · Employee Attendance Analysis System <span>Built with Python & Flask</span></footer>
+    </section>
+  </main>
+</div>
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body></html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Employee sign in{% endblock %}
+{% block auth_content %}
+<main class="login-page">
+  <section class="login-visual" aria-label="Employee workspace">
+    <div class="login-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+    <div class="login-copy"><span class="eyebrow">EMPLOYEE WORKSPACE</span><h1>Your attendance.<br><em>In clear view.</em></h1><p>Review your personal attendance, leave requests, and important updates in one private workspace.</p></div>
+    <div class="login-foot">EMPLOYEE ATTENDANCE ANALYSIS SYSTEM</div>
+  </section>
+  <section class="login-panel" aria-labelledby="employee-login-heading">
+    <div class="login-card"><div class="mobile-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+      <span class="eyebrow">EMPLOYEE ACCESS</span><h2 id="employee-login-heading">Employee sign in</h2><p class="muted">Use your registered email or employee ID.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for category,message in messages %}<div class="flash {{ category }}" role="alert">{{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+      <form method="post" class="form-stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label for="employee-identifier">Email or employee ID<input id="employee-identifier" name="identifier" autocomplete="username" autocapitalize="none" required autofocus placeholder="name@company.com or EMP001"></label><label for="employee-password">Password<input id="employee-password" type="password" name="password" autocomplete="current-password" required></label><button class="btn primary full" type="submit">Sign in <span aria-hidden="true">→</span></button></form>
+      <p class="signup-help">Use your exact work email or employee code; your name alone is not a login ID. New accounts can sign in immediately after signup.</p><p class="muted login-account-note"><a href="{{ url_for('employee_forgot_password') }}">Forgot password?</a></p><p class="muted login-account-note">Need access? Create an employee account or ask your administrator to create your employee login.</p><p class="muted auth-switch"><a href="{{ url_for('login') }}">Back to portal selection</a></p>
+    </div>
+  </section>
+</main>
+{% endblock %}

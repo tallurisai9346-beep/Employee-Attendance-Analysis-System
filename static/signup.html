@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block auth_content %}
+<main class="login-page">
+  <section class="login-visual" aria-label="AttendIQ overview">
+    <div class="login-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+    <div class="login-copy">
+      <span class="eyebrow">PEOPLE, MADE VISIBLE</span>
+      <h1>Your team.<br><em>In clear view.</em></h1>
+      <p>Create an account to access attendance insights and your team workspace.</p>
+    </div>
+    <div class="login-foot">EMPLOYEE ATTENDANCE ANALYSIS SYSTEM</div>
+  </section>
+  <section class="login-panel" aria-labelledby="signup-heading">
+    <div class="login-card">
+      <div class="mobile-brand"><span class="brand-mark">A</span> Attend<span class="brand-light">IQ</span></div>
+      <span class="eyebrow">NEW ACCOUNT</span>
+      <h2 id="signup-heading">Create your account</h2>
+      <p class="muted">Create your employee login with your name and work email. You can sign in as soon as the account is created.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="full-name">Full name
+          <input id="full-name" name="full_name" type="text" autocomplete="name" maxlength="100" required autofocus>
+        </label>
+        <label for="username">Work email or existing employee ID
+          <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" required>
+        </label>
+        <label for="password">Password
+          <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label for="confirm-password">Confirm password
+          <input id="confirm-password" name="confirm_password" type="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <button class="btn primary full" type="submit">Create account <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="signup-help">New accounts are created immediately with a provisional employee code. An administrator can update official department and job details later. Existing employees can use their registered email or employee code.</p>
+      <p class="muted auth-switch">Already have an account? <a href="{{ url_for('employee_login') }}">Employee sign in</a></p>
+    </div>
+  </section>
+</main>
+{% endblock %}

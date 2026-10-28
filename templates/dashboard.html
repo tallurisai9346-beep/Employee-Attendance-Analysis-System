@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Overview{% endblock %}{% block breadcrumb %}Overview{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">YOUR WORKFORCE AT A GLANCE</span><h1>Good morning, {{ session.get('user')|capitalize }} <span class="wave">✦</span></h1><p>Here’s what’s happening with your team today.</p></div><div class="heading-actions"><form class="date-picker" method="get"><label for="date">Viewing date</label><input id="date" type="date" name="date" value="{{ today }}" onchange="this.form.submit()"></form><a class="btn primary" href="{{ url_for('attendance', date=today) }}">＋ Mark attendance</a></div></div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-top"><span class="stat-icon purple">♙</span><span class="stat-caption">ACTIVE TEAM</span></div><div class="stat-value">{{ total }}</div><div class="stat-bottom"><span class="stat-sub">Active employees</span><span class="stat-symbol">↗</span></div></div>
+  <div class="stat-card"><div class="stat-top"><span class="stat-icon green">✓</span><span class="stat-caption">PRESENT TODAY</span></div><div class="stat-value">{{ present }}<small> / {{ total }}</small></div><div class="progress"><span style="width:{{ (present/total*100) if total else 0 }}%"></span></div><div class="stat-bottom"><span class="stat-sub">Present, late or half day</span><strong>{{ ((present/total*100) if total else 0)|round|int }}%</strong></div></div>
+  <div class="stat-card"><div class="stat-top"><span class="stat-icon red">↘</span><span class="stat-caption">ABSENT TODAY</span></div><div class="stat-value">{{ absent }}</div><div class="stat-bottom"><span class="stat-sub">Marked absent</span><span class="status-pill danger">Absent</span></div></div>
+  <div class="stat-card"><div class="stat-top"><span class="stat-icon amber">◷</span><span class="stat-caption">ON LEAVE</span></div><div class="stat-value">{{ leave }}</div><div class="stat-bottom"><span class="stat-sub">Approved / recorded leave</span><span class="status-pill warning">Leave</span></div></div>
+</div>
+<div class="content-grid">
+  <div class="panel chart-panel"><div class="panel-heading"><div><h3>Team distribution</h3><p>Active employees by department</p></div><span class="panel-badge">BY DEPARTMENT</span></div><div id="departmentChart" class="chart"></div></div>
+  <div class="panel today-panel"><div class="panel-heading"><div><h3>Daily attendance</h3><p>{{ today }}</p></div><span class="status-pill neutral">{{ marked }} marked</span></div>
+    <div class="donut-wrap"><div id="todayChart" class="donut-chart"></div><div class="donut-center"><strong>{{ ((present/total*100) if total else 0)|round|int }}%</strong><span>attendance</span></div></div>
+    <div class="legend-row"><span><i class="legend-dot present"></i>Present <b>{{ present }}</b></span><span><i class="legend-dot absent"></i>Absent <b>{{ absent }}</b></span><span><i class="legend-dot leave"></i>Leave <b>{{ leave }}</b></span></div>
+    <a class="text-link" href="{{ url_for('attendance', date=today) }}">Review attendance <span>→</span></a>
+  </div>
+</div>
+<div class="panel table-panel"><div class="panel-heading"><div><h3>Recent attendance activity</h3><p>Latest updates from your workforce</p></div><a class="text-link" href="{{ url_for('reports') }}">View reports <span>→</span></a></div>
+<div class="table-scroll"><table><thead><tr><th>EMPLOYEE</th><th>DEPARTMENT</th><th>DATE</th><th>CHECK IN</th><th>CHECK OUT</th><th>STATUS</th></tr></thead><tbody>
+{% for r in recent %}<tr><td><div class="person-cell"><div class="person-avatar">{{ r.name[0]|upper }}</div><div><strong>{{ r.name }}</strong><small>{{ r.employee_code }}</small></div></div></td><td>{{ r.department }}</td><td>{{ r.attendance_date }}</td><td>{{ r.check_in or '—' }}</td><td>{{ r.check_out or '—' }}</td><td><span class="status-pill {{ r.status|lower|replace(' ','-') }}">{{ r.status }}</span></td></tr>{% else %}<tr><td colspan="6"><div class="empty-state"><strong>No attendance activity yet</strong><p>Mark attendance to start seeing activity here.</p><a class="btn small primary" href="{{ url_for('attendance') }}">Mark attendance</a></div></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}
+{% block scripts %}<script>
+const deptLabels={{ dept|map(attribute='department')|list|tojson }};
+const deptValues={{ dept|map(attribute='total')|list|tojson }};
+Plotly.newPlot('departmentChart',[{type:'bar',x:deptLabels,y:deptValues,marker:{color:'#6574e8',line:{width:0}},hovertemplate:'%{x}<br>%{y} employees<extra></extra>'}],{margin:{t:12,r:10,b:42,l:34},paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#7b8196',size:11},xaxis:{showgrid:false,zeroline:false},yaxis:{gridcolor:'#edf0f7',zeroline:false,dtick:1},bargap:.45},{displayModeBar:false,responsive:true});
+Plotly.newPlot('todayChart',[{type:'pie',hole:.76,labels:['Present','Absent','Leave','Not marked'],values:[{{ present }},{{ absent }},{{ leave }},{{ [total-marked,0]|max }}],sort:false,textinfo:'none',marker:{colors:['#39b98a','#ef6b75','#f4b74b','#edf0f7']},hovertemplate:'%{label}: %{value}<extra></extra>'}],{margin:{t:0,r:0,b:0,l:0},showlegend:false,paper_bgcolor:'transparent',font:{family:'DM Sans'}},{displayModeBar:false,responsive:true});
+</script>{% endblock %}

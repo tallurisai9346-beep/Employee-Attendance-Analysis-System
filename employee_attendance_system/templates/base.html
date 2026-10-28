@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Attendance Analysis{% endblock %} · EAAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+{% if session.get('role') %}
+  <div class="workspace">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{{ url_for('admin.dashboard') if session.get('role') == 'admin' else url_for('employee.dashboard') }}">
+        <span class="brand-mark"><i class="bi bi-calendar2-check"></i></span>
+        <span>EA<span class="brand-accent">AS</span><small>ATTENDANCE ANALYSIS</small></span>
+      </a>
+      <div class="nav-caption">{{ 'ADMINISTRATION' if session.get('role') == 'admin' else 'EMPLOYEE PORTAL' }}</div>
+      <nav class="side-nav">
+        {% if session.get('role') == 'admin' %}
+          <a class="side-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-grid-1x2"></i>Overview</a>
+          <a class="side-link {% if request.endpoint == 'admin.employees' %}active{% endif %}" href="{{ url_for('admin.employees') }}"><i class="bi bi-people"></i>Employees</a>
+          <a class="side-link {% if request.endpoint == 'admin.attendance' %}active{% endif %}" href="{{ url_for('admin.attendance') }}"><i class="bi bi-calendar2-week"></i>Attendance</a>
+          <a class="side-link {% if request.endpoint == 'admin.leaves' %}active{% endif %}" href="{{ url_for('admin.leaves') }}"><i class="bi bi-inbox"></i>Leave requests</a>
+          <a class="side-link {% if request.endpoint == 'admin.corrections' %}active{% endif %}" href="{{ url_for('admin.corrections') }}"><i class="bi bi-pencil-square"></i>Corrections</a>
+          <a class="side-link {% if request.endpoint == 'admin.reports' %}active{% endif %}" href="{{ url_for('admin.reports') }}"><i class="bi bi-bar-chart"></i>Reports</a>
+          <a class="side-link {% if request.endpoint == 'admin.settings' %}active{% endif %}" href="{{ url_for('admin.settings') }}"><i class="bi bi-gear"></i>Settings</a>
+        {% else %}
+          <a class="side-link {% if request.endpoint == 'employee.dashboard' %}active{% endif %}" href="{{ url_for('employee.dashboard') }}"><i class="bi bi-grid-1x2"></i>My dashboard</a>
+          <a class="side-link {% if request.endpoint == 'employee.attendance' %}active{% endif %}" href="{{ url_for('employee.attendance') }}"><i class="bi bi-calendar2-week"></i>My attendance</a>
+          <a class="side-link {% if request.endpoint == 'employee.leaves' %}active{% endif %}" href="{{ url_for('employee.leaves') }}"><i class="bi bi-calendar2-plus"></i>My leave</a>
+          <a class="side-link {% if request.endpoint == 'employee.profile' %}active{% endif %}" href="{{ url_for('employee.profile') }}"><i class="bi bi-person-gear"></i>My profile</a>
+        {% endif %}
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="profile-chip"><span class="avatar">{{ session.get('display_name', 'A')[0]|upper }}</span><span class="profile-copy"><strong>{{ session.get('display_name') }}</strong><small>{{ session.get('role')|title }}</small></span><form class="logout-form" method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="logout" type="submit" title="Sign out" aria-label="Sign out"><i class="bi bi-box-arrow-right"></i></button></form></div>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><button class="mobile-menu" type="button" data-sidebar-toggle aria-label="Toggle navigation"><i class="bi bi-list"></i></button><div class="breadcrumb-label">{{ 'Admin workspace' if session.get('role') == 'admin' else 'Employee workspace' }} <span>/</span> {% block breadcrumb %}Overview{% endblock %}</div><div class="topbar-status"><span class="status-pip"></span> Secure session</div></header>
+      <section class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="alert alert-{{ category }} alert-dismissible" role="alert">{{ message }}<button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}</div>{% endif %}{% endwith %}
+        {% block content %}{% endblock %}
+        <footer class="app-footer"><span>Employee Attendance Analysis System</span><span>Attendance policy: weekdays only; approved leave and holidays excluded.</span></footer>
+      </section>
+    </main>
+  </div>
+{% else %}
+  {% block public_content %}{% endblock %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
